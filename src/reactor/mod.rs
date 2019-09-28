@@ -118,6 +118,11 @@ impl Core {
     /// Creates a new event loop, returning any error that happened during the
     /// creation.
     pub fn new() -> io::Result<Core> {
+        Self::new2(None)
+    }
+
+    /// The purpose of this fork of tokio-core is to make core_threads parameterizable.
+    pub fn new2(core_threads: Option<usize>) -> io::Result<Core> {
         // Create a new parker
         let timer = Timer::new(ParkThread::new());
 
@@ -126,7 +131,13 @@ impl Core {
         let notify_rx = Arc::new(MyNotify::new(timer.unpark()));
 
         // New Tokio reactor + threadpool
-        let rt = tokio::runtime::Runtime::new()?;
+        let rt = match core_threads {
+            Some(core_threads) => {
+                tokio::runtime::Builder::new().core_threads(core_threads).build()?
+            }
+            // This was the default behavior before the patch was introduced.
+            None => tokio::runtime::Runtime::new()?
+        };
 
         let timer_handle = timer.handle();
 
