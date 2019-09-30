@@ -118,11 +118,11 @@ impl Core {
     /// Creates a new event loop, returning any error that happened during the
     /// creation.
     pub fn new() -> io::Result<Core> {
-        Self::new2(None)
+        Self::with_poolsize(None)
     }
 
     /// The purpose of this fork of tokio-core is to make core_threads parameterizable.
-    pub fn new2(core_threads: Option<usize>) -> io::Result<Core> {
+    pub fn with_poolsize(core_threads: Option<usize>) -> io::Result<Core> {
         // Create a new parker
         let timer = Timer::new(ParkThread::new());
 
